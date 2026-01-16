@@ -1,5 +1,5 @@
 <?php
-require_once 'config/config.php';
+require_once '../config/config.php';
 
 // Generate fresh hash for password123
 $freshHash = password_hash('password123', PASSWORD_DEFAULT);
