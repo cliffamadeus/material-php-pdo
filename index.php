@@ -3,6 +3,13 @@ require_once 'config/config.php';
 require_once 'config/functions.php';
 require_once 'includes/activity-logger.php'; 
 
+// uncomment on deployment
+/*
+require_once $_SERVER['DOCUMENT_ROOT'] . '/test/config/config.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/test/config/functions.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/test/includes/activity-logger.php';
+*/
+
 if (isLoggedIn()) {
     switch($_SESSION['role']) {
         case 'admin':
