@@ -1,7 +1,7 @@
 <?php
 
-require_once 'config/config.php';
-require_once 'includes/activity-logger.php';
+require_once '../config/config.php';
+require_once '../includes/activity-logger.php';
 
 $message = '';
 
