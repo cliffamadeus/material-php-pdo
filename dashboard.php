@@ -12,7 +12,8 @@ $stmt = $pdo->query("
     FROM activity_logs
 ");
 
-$totalActivities = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$totalActivities =
+    $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
 
 $stmt = $pdo->query("
@@ -21,7 +22,8 @@ $stmt = $pdo->query("
     WHERE activity_log_status = 'success'
 ");
 
-$successfulActivities = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$successfulActivities =
+    $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
 
 $stmt = $pdo->query("
@@ -30,7 +32,8 @@ $stmt = $pdo->query("
     WHERE activity_log_status = 'failed'
 ");
 
-$failedActivities = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$failedActivities =
+    $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
 
 $stmt = $pdo->query("
@@ -39,7 +42,8 @@ $stmt = $pdo->query("
     WHERE DATE(activity_log_created_at) = CURDATE()
 ");
 
-$todayActivities = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+$todayActivities =
+    $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
 
 // ==========================================
@@ -55,7 +59,8 @@ $stmt = $pdo->query("
     ORDER BY total DESC
 ");
 
-$activityBreakdown = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$activityBreakdown =
+    $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 // ==========================================
@@ -77,7 +82,8 @@ $stmt = $pdo->query("
     LIMIT 20
 ");
 
-$recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$recentActivities =
+    $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -94,9 +100,9 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Logger Dashboard</title>
+    <title>Activity Logger Dashboard</title>
 
-<!--
+
     <style>
 
         body {
@@ -112,7 +118,9 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns:
+                repeat(4, 1fr);
+
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -140,6 +148,7 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 30px;
             border-radius: 8px;
             border: 1px solid #ddd;
+            overflow-x: auto;
         }
 
         table {
@@ -168,8 +177,28 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
             font-weight: bold;
         }
 
+        @media (max-width: 800px) {
+
+            .stats {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+        }
+
+        @media (max-width: 500px) {
+
+            body {
+                padding: 15px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
     </style>
--->
 
 </head>
 
@@ -181,7 +210,9 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </h1>
 
 
-<!-- Statistics -->
+<!-- ==========================================
+     STATISTICS
+========================================== -->
 
 <div class="stats">
 
@@ -239,7 +270,9 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 
-<!-- Activity Breakdown -->
+<!-- ==========================================
+     ACTIVITY BREAKDOWN
+========================================== -->
 
 <div class="section">
 
@@ -252,8 +285,15 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <thead>
 
             <tr>
-                <th>Activity</th>
-                <th>Total</th>
+
+                <th>
+                    Activity
+                </th>
+
+                <th>
+                    Total
+                </th>
+
             </tr>
 
         </thead>
@@ -289,7 +329,9 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 
-<!-- Recent Logs -->
+<!-- ==========================================
+     RECENT ACTIVITIES
+========================================== -->
 
 <div class="section">
 
@@ -302,12 +344,31 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <thead>
 
             <tr>
-                <th>Date</th>
-                <th>User</th>
-                <th>Action</th>
-                <th>Status</th>
-                <th>IP Address</th>
-                <th>Browser / User-Agent</th>
+
+                <th>
+                    Date
+                </th>
+
+                <th>
+                    User
+                </th>
+
+                <th>
+                    Action
+                </th>
+
+                <th>
+                    Status
+                </th>
+
+                <th>
+                    IP Address
+                </th>
+
+                <th>
+                    Browser / User-Agent
+                </th>
+
             </tr>
 
         </thead>
@@ -319,35 +380,34 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <tr>
 
                 <td>
-
                     <?php
                     echo htmlspecialchars(
-                        $activity['activity_log_created_at']
+                        $activity[
+                            'activity_log_created_at'
+                        ]
                     );
                     ?>
-
                 </td>
 
 
                 <td>
-
                     <?php
                     echo htmlspecialchars(
-                        $activity['user_email'] ?? 'Unknown'
+                        $activity['user_email']
+                        ?? 'Unknown'
                     );
                     ?>
-
                 </td>
 
 
                 <td>
-
                     <?php
                     echo htmlspecialchars(
-                        $activity['activity_log_action']
+                        $activity[
+                            'activity_log_action'
+                        ]
                     );
                     ?>
-
                 </td>
 
 
@@ -355,13 +415,17 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     <span class="<?php
                         echo htmlspecialchars(
-                            $activity['activity_log_status']
+                            $activity[
+                                'activity_log_status'
+                            ]
                         );
                     ?>">
 
                         <?php
                         echo htmlspecialchars(
-                            $activity['activity_log_status']
+                            $activity[
+                                'activity_log_status'
+                            ]
                         );
                         ?>
 
@@ -371,25 +435,26 @@ $recentActivities = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
                 <td>
-
                     <?php
                     echo htmlspecialchars(
-                        $activity['activity_log_ip_address']
+                        $activity[
+                            'activity_log_ip_address'
+                        ]
+                        ?? 'Unknown'
                     );
                     ?>
-
                 </td>
 
 
                 <td>
-
                     <?php
                     echo htmlspecialchars(
-                        $activity['activity_log_user_agent']
+                        $activity[
+                            'activity_log_user_agent'
+                        ]
                         ?? 'Unknown'
                     );
                     ?>
-
                 </td>
 
             </tr>

@@ -2,11 +2,12 @@
 
 function logActivity(
     $pdo,
-    $user_id,
+    $userId,
     $email,
     $action,
     $status = 'success'
 ) {
+
     try {
 
         // Get client IP address
@@ -14,24 +15,19 @@ function logActivity(
             ?? $_SERVER['REMOTE_ADDR']
             ?? 'Unknown';
 
-        // Handle forwarded IP addresses
+        // If multiple IPs exist, use the first one
         if (strpos($ip, ',') !== false) {
             $ip = trim(explode(',', $ip)[0]);
         }
 
-        // Get browser / user agent
-        $user_agent = substr(
+        // Get browser information
+        $userAgent = substr(
             $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
             0,
             255
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Insert Activity Log
-        |--------------------------------------------------------------------------
-        */
-
+        // Insert activity log
         $stmt = $pdo->prepare("
             INSERT INTO activity_logs (
                 user_id,
@@ -45,18 +41,18 @@ function logActivity(
         ");
 
         return $stmt->execute([
-            $user_id,
+            $userId,
             $email,
             $action,
             $status,
             $ip,
-            $user_agent
+            $userAgent
         ]);
 
     } catch (PDOException $e) {
 
         error_log(
-            "Activity Log Error: " . $e->getMessage()
+            'Activity Log Error: ' . $e->getMessage()
         );
 
         return false;
