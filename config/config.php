@@ -6,7 +6,7 @@ define('MAIL_FROM', 'noreply@yourdomain.com');
 define('BASE_URL', 'http://localhost/material-php-pdo');
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'material_pdo');
+define('DB_NAME', 'it34_lab_db');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 

@@ -1,211 +1,151 @@
 <?php
+
 require_once 'config/config.php';
-require_once 'config/functions.php';
-require_once 'includes/activity-logger.php'; 
+require_once 'includes/activity-logger.php';
 
-// Uncomment on deployment
-/*
-require_once $_SERVER['DOCUMENT_ROOT'] . '/test/config/config.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/test/config/functions.php';
-require_once $_SERVER['DOCUMENT_ROOT'] . '/test/includes/activity-logger.php';
-*/
-
-if (isLoggedIn()) {
-    switch ($_SESSION['role']) {
-        case 'admin':
-            redirect('/app/admin/dashboard.php');
-            break;
-
-        case 'manager':
-            redirect('/app/manager/dashboard.php');
-            break;
-
-        case 'user':
-            redirect('/app/user/dashboard.php');
-            break;
-    }
-}
-
-$error = '';
+$message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
 
-    $stmt = $pdo->prepare(
-        "SELECT * FROM users WHERE email = ? AND is_verified = 1"
-    );
+    $action = trim($_POST['action'] ?? '');
+    $status = $_POST['status'] ?? 'success';
 
-    $stmt->execute([$email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Get current logged-in user
+    $user_id = $_SESSION['user_id'] ?? null;
+    $email   = $_SESSION['email'] ?? null;
 
-    if ($user && password_verify($password, $user['password'])) {
+    if ($action === '') {
 
-        // Successful login
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['email'] = $user['email'];
-        $_SESSION['role'] = $user['role'];
-
-        // Log successful login
-        logActivity(
-            $pdo,
-            $user['id'],
-            $user['email'],
-            'login',
-            'success'
-        );
-
-        switch ($user['role']) {
-            case 'admin':
-                redirect('/app/admin/dashboard.php');
-                break;
-
-            case 'manager':
-                redirect('/app/manager/dashboard.php');
-                break;
-
-            case 'user':
-                redirect('/app/user/dashboard.php');
-                break;
-        }
+        $message = 'Action is required.';
 
     } else {
 
-        // Failed login
-        $error = 'Invalid credentials or email not verified';
-
-        // Log failed login attempt
-        logActivity(
+        $result = logActivity(
             $pdo,
-            null,
+            $user_id,
             $email,
-            'login',
-            'failed'
+            $action,
+            $status
         );
+
+        if ($result) {
+            $message = 'Activity logged successfully.';
+        } else {
+            $message = 'Failed to log activity.';
+        }
     }
 }
 
-renderHeader('Login');
 ?>
 
-<link rel="stylesheet" href="assets/css/auth.css">
+<!DOCTYPE html>
 
-<main class="auth-page">
+<html lang="en">
 
-    <section class="auth-card">
+<head>
 
-        <div class="auth-header">
+    <meta charset="UTF-8">
 
-            <div class="auth-logo">
-                A
-            </div>
+    <title>Activity Logger Test</title>
 
-            <h1>Welcome back</h1>
+</head>
 
-            <p>
-                Sign in to continue to your account
-            </p>
+<body>
 
-        </div>
+    <h1>Activity Logger</h1>
 
-        <?php if ($error): ?>
+    <?php if ($message): ?>
 
-            <div class="auth-alert auth-alert-error" role="alert">
-                <?php echo htmlspecialchars($error); ?>
-            </div>
+        <p>
+            <?php echo htmlspecialchars($message); ?>
+        </p>
 
-        <?php endif; ?>
+    <?php endif; ?>
 
-        <form method="POST" class="auth-form">
 
-            <div class="auth-field">
-                <label for="email">
-                    Email address
-                </label>
+    <form method="POST">
 
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"
-                    autocomplete="email"
-                    required
-                >
-            </div>
+        <div>
 
-            <div class="auth-field">
-                <label for="password">
-                    Password
-                </label>
+            <label for="action">
+                Activity
+            </label>
 
-                <div class="password-input-wrapper">
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        autocomplete="current-password"
-                        required
-                    >
-
-                    <button
-                        type="button"
-                        id="togglePassword"
-                        class="password-toggle"
-                        aria-label="Show password"
-                    >
-                        Show
-                    </button>
-                </div>
-            </div>
-
-            <button
-                type="submit"
-                class="auth-button"
+            <select
+                name="action"
+                id="action"
+                required
             >
-                Sign in
-            </button>
 
-        </form>
+                <option value="">
+                    Select Activity
+                </option>
 
-        <div class="auth-demo">
+                <option value="login">
+                    Login
+                </option>
 
-            <div class="auth-demo-title">
-                Test Accounts
-            </div>
+                <option value="logout">
+                    Logout
+                </option>
 
-            <p>
-                Password:
-                <code>password123</code>
-            </p>
+                <option value="view_dashboard">
+                    View Dashboard
+                </option>
 
-            <div class="auth-demo-accounts">
-                <span>admin@example.com</span>
-                <span>manager@example.com</span>
-                <span>user@example.com</span>
-            </div>
+                <option value="create">
+                    Create Record
+                </option>
+
+                <option value="update">
+                    Update Record
+                </option>
+
+                <option value="delete">
+                    Delete Record
+                </option>
+
+            </select>
 
         </div>
 
-    </section>
 
-</main>
+        <br>
 
-<script>
-const passwordInput = document.getElementById('password');
-const togglePassword = document.getElementById('togglePassword');
 
-togglePassword.addEventListener('click', function () {
-    const isPassword = passwordInput.type === 'password';
+        <div>
 
-    passwordInput.type = isPassword ? 'text' : 'password';
+            <label for="status">
+                Status
+            </label>
 
-    this.textContent = isPassword ? 'Hide' : 'Show';
-    this.setAttribute(
-        'aria-label',
-        isPassword ? 'Hide password' : 'Show password'
-    );
-});
-</script>
+            <select
+                name="status"
+                id="status"
+            >
 
-<?php renderFooter(); ?>
+                <option value="success">
+                    Success
+                </option>
 
+                <option value="failed">
+                    Failed
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <br>
+
+
+        <button type="submit">
+            Log Activity
+        </button>
+
+    </form>
+
+</body>
+
+</html>

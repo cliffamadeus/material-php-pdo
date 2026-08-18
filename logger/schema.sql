@@ -1,36 +1,87 @@
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role ENUM('admin', 'manager', 'user') DEFAULT 'user',
+-- ==========================================
+-- USERS TABLE
+-- ==========================================
 
-    -- Email verification fields
-    is_verified TINYINT(1) DEFAULT 0,
-    verification_token VARCHAR(64),
-    email_verification_expires DATETIME NULL,
+CREATE TABLE IF NOT EXISTS users (
+    user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+    user_email VARCHAR(255) NOT NULL,
+    user_password VARCHAR(255) NOT NULL,
 
--- Insert sample users (password is 'password123' for all)
-INSERT INTO users (email, password, role, is_verified) VALUES
-('admin@example.com', '$2y$10$HNfhClczEWBxcFuJwP53iu2Y75Tba7IEtmX8vX.1tp0dZ5EVt9CbO', 'admin', 1),
-('manager@example.com', '$2y$10$HNfhClczEWBxcFuJwP53iu2Y75Tba7IEtmX8vX.1tp0dZ5EVt9CbO', 'manager', 1),
-('user@example.com', '$2y$10$HNfhClczEWBxcFuJwP53iu2Y75Tba7IEtmX8vX.1tp0dZ5EVt9CbO', 'user', 1);
+    user_role ENUM('admin', 'manager', 'user')
+        NOT NULL DEFAULT 'user',
+
+    user_is_verified TINYINT(1)
+        NOT NULL DEFAULT 0,
+
+    user_created_at TIMESTAMP
+        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    user_updated_at TIMESTAMP
+        NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_users_email (user_email),
+    INDEX idx_users_role (user_role),
+    INDEX idx_users_verified (user_is_verified)
+    
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;
+
+
+-- ==========================================
+-- ACTIVITY LOGS TABLE
+-- ==========================================
 
 CREATE TABLE IF NOT EXISTS activity_logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NULL,  -- NULL for failed login attempts
-    email VARCHAR(255),
-    action VARCHAR(50) NOT NULL,
-    status ENUM('success', 'failed') DEFAULT 'success',
-    ip_address VARCHAR(45),
-    user_agent VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    INDEX idx_user_id (user_id),
-    INDEX idx_action (action),
-    INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    activity_log_id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 
+    -- NULL when the user cannot be identified
+    -- Example: failed login attempt
+    user_id INT UNSIGNED NULL,
+
+    -- Preserve email even if the user is later deleted
+    user_email VARCHAR(255) NULL,
+
+    activity_log_action VARCHAR(50)
+        NOT NULL,
+
+    activity_log_status ENUM('success', 'failed')
+        NOT NULL DEFAULT 'success',
+
+    activity_log_ip_address VARCHAR(45) NULL,
+
+    activity_log_user_agent VARCHAR(255) NULL,
+
+    activity_log_created_at TIMESTAMP
+        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    -- Indexes
+    INDEX idx_activity_user_id (user_id),
+    INDEX idx_activity_email (user_email),
+    INDEX idx_activity_action (activity_log_action),
+    INDEX idx_activity_status (activity_log_status),
+    INDEX idx_activity_created_at (activity_log_created_at),
+
+    -- Composite indexes for common dashboard queries
+    INDEX idx_activity_user_date (
+        user_id,
+        activity_log_created_at
+    ),
+
+    INDEX idx_activity_action_date (
+        activity_log_action,
+        activity_log_created_at
+    ),
+
+    -- Relationship
+    CONSTRAINT fk_activity_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+
+) ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci;
